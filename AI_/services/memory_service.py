@@ -1,6 +1,6 @@
 import os
 from langchain_community.embeddings import ZhipuAIEmbeddings
-from services.vector_stores import VectorStoreService
+from .vector_stores import VectorStoreService
 
 class MemoryService(object):
 

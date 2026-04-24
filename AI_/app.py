@@ -1,23 +1,29 @@
 import os
 import streamlit as st
-from services.llm_service import get_llm
+from services.llm_service import LLMService
 from services.memory_service import MemoryService
+from services.prompt import ai_chain
+from langchain_core.output_parsers import StrOutputParser
 
-# 检查环境变量
-if not os.getenv("DEEPSEEK_API_KEY"):
-    st.error("❌ 未设置 DEEPSEEK_API_KEY 环境变量，请在终端运行：\n\n```\nset DEEPSEEK_API_KEY=你的key\n```")
-    st.stop()
-if not os.getenv("ZHIPU_API_KEY"):
-    st.error("❌ 未设置 ZHIPU_API_KEY 环境变量（用于向量记忆），请在终端运行：\n\n```\nset ZHIPU_API_KEY=你的key\n```")
-    st.stop()
 
-llm = get_llm()
 memory = MemoryService()
+str_output = StrOutputParser()
 
-st.title("🧠 AI聊天（带长期记忆）")
+st.title("AI猫娘")
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
+if "system_prompt" not in st.session_state:
+    st.session_state.system_prompt = "你是一个猫娘，性格温柔，是个傲娇，还有点笨"
+
+# 侧边栏设置
+st.sidebar.title("⚙️ 设置")
+system_prompt = st.sidebar.text_area(
+    "AI性格设定",
+    value=st.session_state.system_prompt,
+    height=120
+)
+
 
 for msg in st.session_state.messages:
     st.chat_message(msg["role"]).write(msg["content"])
@@ -31,19 +37,27 @@ if user_input:
     # 🔍 查记忆
     context = memory.get_context(user_input)
 
-    prompt = f"""
-    以下是历史对话：
-    {context}
+    chain = ai_chain(system_prompt)
 
-    用户问题：
-    {user_input}
-    """
+    with st.chat_message("assistant"):
+        placeholder = st.empty()
+        answer = ""
 
-    res = llm.invoke(prompt)
-    answer = res.content
+        with st.spinner("少女祈祷中..."):
+            for chunk in chain.stream({
+                "context": context,
+                "user_input": user_input
+            }):
+                answer += chunk
+                placeholder.markdown(answer)
 
-    st.chat_message("assistant").write(answer)
-    st.session_state.messages.append({"role": "assistant", "content": answer})
+    # 确保历史消息还显示
+    st.session_state.messages.append({
+        "role": "assistant",
+        "content": answer
+    })
+
+
 
     # 💾 存记忆
     memory.save(user_input, answer)
