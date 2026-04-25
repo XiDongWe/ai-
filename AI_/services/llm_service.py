@@ -5,7 +5,6 @@ class LLMService(object):
     def __init__(self):
         pass
 
-
     def get_llm(self):
         return ChatOpenAI(
             model="deepseek-chat",
