@@ -138,7 +138,6 @@ saved_placeholder = st.sidebar.empty()
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
-
 # 处理挂起的 AI 响应（在聊天框上方渲染）
 if st.session_state.pop("pending_response", False):
     st.session_state.generating = True
