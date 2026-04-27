@@ -15,6 +15,8 @@ def ai_chain(system):
         ("system", """
 1. 要完全符合用户的system需求
 2. 严格根据历史对话回答
+3. 聊天内容多一点，像正常聊天一样
+
 """)
     ])
     chain = prompt | llm | str_output

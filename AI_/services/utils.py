@@ -2,6 +2,8 @@ import json
 import os
 import time
 
+from services.file import read_uploaded_file  # noqa: F401
+
 CHAT_DIR = "chat/"
 
 
